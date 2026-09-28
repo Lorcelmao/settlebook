@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: settlebook
+  # Local-development defaults; every value is overridden by environment variables in deployed environments.
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/settlebook}
+    username: ${DB_USERNAME:settlebook}
+    password: ${DB_PASSWORD:settlebook}
+  mvc:
+    # Errors are returned as RFC 9457 application/problem+json.
+    problemdetails:
+      enabled: true
+
+settlebook:
+  order:
+    # How long an order waits for payment before it can be expired.
+    payment-window: PT15M
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
