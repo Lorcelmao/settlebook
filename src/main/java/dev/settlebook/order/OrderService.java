@@ -35,4 +35,10 @@ public class OrderService {
 		return orders.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
 	}
 
+	/** Joins the caller's transaction; returns false if the order was no longer awaiting payment. */
+	@Transactional
+	public boolean markPaidIfAwaitingPayment(UUID id) {
+		return orders.markPaidIfAwaitingPayment(id);
+	}
+
 }

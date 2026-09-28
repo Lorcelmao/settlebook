@@ -1,6 +1,9 @@
 spring:
   application:
     name: settlebook
+  config:
+    # Local secrets (git-ignored). In deployed environments the same names come from real environment variables.
+    import: optional:file:.env[.properties]
   # Local-development defaults; every value is overridden by environment variables in deployed environments.
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/settlebook}
@@ -15,6 +18,11 @@ settlebook:
   order:
     # How long an order waits for payment before it can be expired.
     payment-window: PT15M
+  vnpay:
+    tmn-code: ${VNPAY_TMN_CODE:}
+    hash-secret: ${VNPAY_HASH_SECRET:}
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    return-url: ${VNPAY_RETURN_URL:http://localhost:8080/api/vnpay/return}
 
 management:
   endpoints:

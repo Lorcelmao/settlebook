@@ -4,7 +4,7 @@
 
 Payment callback ingestion and reconciliation service for a Vietnamese merchant that accepts payments through VNPay.
 
-> **Status: early development.** Only the order API exists so far. Payment handling, the gateway simulator, the ledger and reconciliation are planned, not built. Nothing in this README claims a feature that the code does not have.
+> **Status: early development.** Orders and the VNPay sandbox payment flow (signed payment URL, IPN callback, browser return) work. Idempotency hardening, duplicate-charge recording, the gateway simulator, the ledger and reconciliation are planned, not built. Nothing in this README claims a feature that the code does not have.
 
 ## The problem
 
@@ -30,8 +30,30 @@ These two situations look alike and are handled completely differently. The code
 
 - `POST /api/orders` creates an order awaiting payment. The amount is whole VND and the payment window defaults to 15 minutes.
 - `GET /api/orders/{id}` fetches an order.
+- `POST /api/orders/{id}/payments/vnpay` starts a payment attempt and returns a signed VNPay payment URL. VNPay's expiry is set to the order's payment window.
+- `GET /api/vnpay/ipn` is VNPay's server-to-server callback and the **only** request that changes payment state:
+  - it verifies the HMAC-SHA512 checksum in constant time;
+  - it answers with VNPay's reply codes (`00`, `02`, `01`, `04`, `97`, `99`) only after the database commit;
+  - a duplicate callback is acknowledged with `02` and changes nothing.
+- `GET /api/vnpay/return` is where the buyer's browser lands. It is display-only: it reports what the IPN has recorded and never changes state.
 - Errors are returned as RFC 9457 `application/problem+json`.
-- PostgreSQL schema managed by Flyway, with CHECK constraints so invalid rows are rejected even if the API validation is bypassed.
+- PostgreSQL schema managed by Flyway, with CHECK and UNIQUE constraints so invalid rows are rejected even if the API validation is bypassed.
+
+**Known limitation (by design, until the correctness core lands):** a successful charge on an order that is no longer awaiting payment is either a **duplicate charge** (the buyer paid twice) or a late payment. It is currently answered `99`, so VNPay keeps retrying and the charge is never silently dropped or booked as a second sale. Recording it as funds held with a refund case is the next phase.
+
+### VNPay configuration
+
+Put the sandbox credentials in a git-ignored `.env` file in the repo root, or set them as environment variables:
+
+```properties
+VNPAY_TMN_CODE=...
+VNPAY_HASH_SECRET=...
+VNPAY_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+# Optional; defaults to http://localhost:8080/api/vnpay/return
+VNPAY_RETURN_URL=...
+```
+
+The application refuses to start without them. Tests use fixed dummy credentials and never read the real ones.
 
 ## Run locally
 

@@ -1,6 +1,6 @@
 # ADR 0000: Implementation language (Java/Spring Boot go/no-go)
 
-- **Status:** Pending. The decision needs the timed follow-up slice below.
+- **Status:** Accepted: Java/Spring Boot (GO), decided by the author on 2026-09-28.
 - **Date opened:** 2026-09-28
 
 ## Context
@@ -46,4 +46,6 @@ The thresholds are the original phase-0 limits scaled to the size of this slice.
 
 ## Result
 
-_To be filled in from `docs/time-log.md` once the slice is merged._
+**GO: continue in Java.** The author decided this before implementing the timed slice, so the measurement above was not taken and there is no timing evidence behind the decision.
+
+The remaining safeguard is the plan's checkpoint at the end of the correctness-core phase: if work on the skeleton through that phase exceeds about 55 hours of the author's time, cut scope (the ops console to 3 screens) rather than continue at the original size.

@@ -51,4 +51,14 @@ class OrderRepository {
 			.optional();
 	}
 
+	/**
+	 * Conditional update: only an order still awaiting payment becomes PAID, so the check and the write
+	 * are one atomic statement. Returns false if the order was in any other state.
+	 */
+	boolean markPaidIfAwaitingPayment(UUID id) {
+		return jdbc.sql("UPDATE orders SET status = 'PAID' WHERE id = :id AND status = 'AWAITING_PAYMENT'")
+			.param("id", id)
+			.update() == 1;
+	}
+
 }
